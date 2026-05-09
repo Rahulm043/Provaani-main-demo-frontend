@@ -1,7 +1,8 @@
 import React from 'react';
 import { Routes, Route, NavLink, useLocation, Navigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Phone, Megaphone, Plus, Settings, Activity, LogOut, User,
+  LayoutDashboard, Phone, Megaphone, Plus, LogOut,
+  GraduationCap, Shield, BookOpen,
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard.jsx';
 import SingleCall from './pages/SingleCall.jsx';
@@ -9,11 +10,17 @@ import CampaignList from './pages/CampaignList.jsx';
 import NewCampaign from './pages/NewCampaign.jsx';
 import CampaignDetail from './pages/CampaignDetail.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import CounsellorDashboard from './pages/CounsellorDashboard.jsx';
+import SuperAdminDashboard from './pages/SuperAdminDashboard.jsx';
+import HODDashboard from './pages/HODDashboard.jsx';
 import { AuthProvider, useAuth } from './components/AuthProvider.jsx';
 import './index.css';
 
 const NAV_ITEMS = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/', icon: LayoutDashboard, label: 'AI Dashboard' },
+  { path: '/superadmin', icon: Shield, label: 'Super Admin' },
+  { path: '/hod', icon: BookOpen, label: 'HOD' },
+  { path: '/counsellor', icon: GraduationCap, label: 'Counsellor' },
   { path: '/call', icon: Phone, label: 'Single Call' },
   { path: '/campaigns', icon: Megaphone, label: 'Campaigns', end: true },
   { path: '/campaigns/new', icon: Plus, label: 'New Campaign' },
@@ -121,6 +128,9 @@ function AppContent() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/superadmin" element={<SuperAdminDashboard />} />
+          <Route path="/hod" element={<HODDashboard />} />
+          <Route path="/counsellor" element={<CounsellorDashboard />} />
           <Route path="/call" element={<SingleCall />} />
           <Route path="/single-call" element={<Navigate to="/call" replace />} />
           <Route path="/campaigns" element={<CampaignList />} />
