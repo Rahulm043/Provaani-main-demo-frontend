@@ -1,6 +1,16 @@
 import { supabase } from '../supabaseClient';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:7860';
+function normalizeApiBase(value) {
+    let base = value || 'http://localhost:7860';
+    // Guard against env mistakes like:
+    // VITE_API_BASE="VITE_API_URL=https://api.example.com"
+    if (base.includes('=')) {
+        base = base.split('=').pop();
+    }
+    return base.replace(/\/$/, '');
+}
+
+const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL);
 
 /**
  * Authenticated fetch wrapper for backend API calls.
