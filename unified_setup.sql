@@ -17,11 +17,6 @@ INSERT INTO public.roles (name)
 VALUES ('super_admin'), ('hod'), ('councillor')
 ON CONFLICT (name) DO NOTHING;
 
--- Starter base courses/departments. Add more from the dashboard as needed.
-INSERT INTO public.departments (name)
-VALUES ('B.Tech'), ('BCA'), ('MBA'), ('M.Tech'), ('Diploma')
-ON CONFLICT (name) DO NOTHING;
-
 -- 3. COURSE/STREAM ROUTING STRUCTURE
 -- Product convention: departments stores the base course/department, e.g.
 -- 'B.Tech', 'BCA', 'MBA'. courses stores the stream/program under that
@@ -51,6 +46,27 @@ CREATE TABLE IF NOT EXISTS public.courses (
 ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS stream_name TEXT;
 ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS aliases JSONB DEFAULT '[]'::jsonb;
 ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+
+-- Starter base courses/departments and streams. Add more from the dashboard as needed.
+INSERT INTO public.departments (name)
+VALUES ('B.Tech'), ('BCA'), ('MBA'), ('M.Tech'), ('Diploma')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO public.courses (department_id, name, stream_name, aliases, duration_years, is_active)
+SELECT d.id, v.stream_name, v.stream_name, v.aliases::jsonb, v.duration_years, true
+FROM public.departments d
+JOIN (VALUES
+    ('B.Tech', 'Mechanical', '["Mechanical Engineering", "ME", "BTech Mechanical", "B.Tech Mechanical"]', 4),
+    ('B.Tech', 'CSE', '["Computer Science", "Computer Science Engineering", "B.Tech CSE", "BTech CSE"]', 4),
+    ('B.Tech', 'Civil', '["Civil Engineering", "B.Tech Civil", "BTech Civil"]', 4),
+    ('BCA', 'General', '["BCA", "Bachelor of Computer Applications"]', 3),
+    ('MBA', 'Finance', '["MBA Finance", "Financial Management"]', 2)
+) AS v(department_name, stream_name, aliases, duration_years)
+ON d.name = v.department_name
+WHERE NOT EXISTS (
+    SELECT 1 FROM public.courses c
+    WHERE c.department_id = d.id AND lower(c.name) = lower(v.stream_name)
+);
 
 -- 4. USER MANAGEMENT
 CREATE TABLE IF NOT EXISTS public.user_master (
@@ -118,6 +134,16 @@ CREATE TABLE IF NOT EXISTS public.leads (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS unsupported_course_name TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS interest_language TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS interest_score INTEGER DEFAULT 0;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS state TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS district TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS mother_tongue TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS financial_state TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS bank_loan_requirement BOOLEAN DEFAULT false;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS assigned_hod_id UUID REFERENCES public.user_master(id);
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS assigned_councillor_id UUID REFERENCES public.councillors(id);
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
 
 -- 7. CAMPAIGNS & CALLS (Pipeline Infrastructure)
 CREATE TABLE IF NOT EXISTS public.campaigns (
@@ -216,6 +242,16 @@ CREATE TABLE IF NOT EXISTS public.call_logs (
     ai_extracted_data JSONB DEFAULT '{}'::jsonb,
     call_datetime TIMESTAMPTZ DEFAULT now()
 );
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS call_id UUID REFERENCES public.calls(call_id) ON DELETE CASCADE;
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS lead_id UUID REFERENCES public.leads(id) ON DELETE CASCADE;
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS councillor_id UUID REFERENCES public.councillors(id) ON DELETE SET NULL;
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS course_id INTEGER REFERENCES public.courses(id) ON DELETE SET NULL;
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS call_number INTEGER DEFAULT 1;
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS interest_level TEXT;
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS follow_up_datetime TIMESTAMPTZ;
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS ai_transcript TEXT;
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS ai_extracted_data JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.call_logs ADD COLUMN IF NOT EXISTS call_datetime TIMESTAMPTZ DEFAULT now();
 
 -- Counsellor manual follow-up records after AI qualification/routing.
 CREATE TABLE IF NOT EXISTS public.manual_followups (
@@ -230,6 +266,15 @@ CREATE TABLE IF NOT EXISTS public.manual_followups (
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
+ALTER TABLE public.manual_followups ADD COLUMN IF NOT EXISTS lead_id UUID REFERENCES public.leads(id) ON DELETE CASCADE;
+ALTER TABLE public.manual_followups ADD COLUMN IF NOT EXISTS call_log_id INTEGER REFERENCES public.call_logs(id) ON DELETE SET NULL;
+ALTER TABLE public.manual_followups ADD COLUMN IF NOT EXISTS councillor_id UUID REFERENCES public.councillors(id) ON DELETE SET NULL;
+ALTER TABLE public.manual_followups ADD COLUMN IF NOT EXISTS status TEXT;
+ALTER TABLE public.manual_followups ADD COLUMN IF NOT EXISTS interest_level TEXT;
+ALTER TABLE public.manual_followups ADD COLUMN IF NOT EXISTS follow_up_datetime TIMESTAMPTZ;
+ALTER TABLE public.manual_followups ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE public.manual_followups ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE public.manual_followups ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
 
 -- 9. INDEXES FOR PERFORMANCE
 CREATE INDEX IF NOT EXISTS idx_leads_phone ON public.leads(phone_number);
@@ -238,6 +283,10 @@ CREATE INDEX IF NOT EXISTS idx_leads_interest_score ON public.leads(interest_sco
 CREATE INDEX IF NOT EXISTS idx_leads_assigned_hod ON public.leads(assigned_hod_id);
 CREATE INDEX IF NOT EXISTS idx_leads_assigned_councillor ON public.leads(assigned_councillor_id);
 CREATE INDEX IF NOT EXISTS idx_courses_department ON public.courses(department_id);
+CREATE INDEX IF NOT EXISTS idx_courses_active ON public.courses(is_active);
+CREATE INDEX IF NOT EXISTS idx_courses_stream_name ON public.courses(stream_name);
+CREATE INDEX IF NOT EXISTS idx_councillor_course_course ON public.councillor_course_mapping(course_id);
+CREATE INDEX IF NOT EXISTS idx_councillor_course_councillor ON public.councillor_course_mapping(councillor_id);
 CREATE INDEX IF NOT EXISTS idx_calls_campaign_id ON public.calls(campaign_id);
 CREATE INDEX IF NOT EXISTS idx_calls_lead_id ON public.calls(lead_id);
 CREATE INDEX IF NOT EXISTS idx_calls_vobiz_uuid ON public.calls(vobiz_call_uuid);
@@ -262,6 +311,8 @@ CREATE INDEX IF NOT EXISTS idx_post_call_jobs_call_id ON public.post_call_jobs(c
 
 -- 9B. REPORTING VIEW FOR REAL CRM DASHBOARDS
 -- This bridges backend call tables to counselor/HOD/super-admin dashboard needs.
+-- Drop first so reruns can safely change the view column list/order.
+DROP VIEW IF EXISTS public.call_log_details;
 CREATE OR REPLACE VIEW public.call_log_details AS
 SELECT
     cl.id,
@@ -298,8 +349,8 @@ SELECT
     u.email AS councillor_email,
     crs.name AS course_name,
     crs.name AS stream_name,
-    CONCAT_WS(' ', d.name, crs.name) AS full_course_name,
-    COALESCE(CONCAT_WS(' ', d.name, crs.name), l.unsupported_course_name, cl.ai_extracted_data->'courses_interested'->>0) AS interest_course_name,
+    NULLIF(CONCAT_WS(' ', d.name, crs.name), '') AS full_course_name,
+    COALESCE(NULLIF(CONCAT_WS(' ', d.name, crs.name), ''), l.unsupported_course_name, cl.ai_extracted_data->'courses_interested'->>0) AS interest_course_name,
     (crs.id IS NULL AND COALESCE(l.unsupported_course_name, cl.ai_extracted_data->'courses_interested'->>0) IS NOT NULL) AS unsupported_course,
     crs.department_id,
     d.name AS department_name
