@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, NavLink, useLocation, Navigate } from 'react-router-dom';
 import {
   LayoutDashboard, Phone, Megaphone, Plus, LogOut,
-  GraduationCap, Shield, BookOpen,
+  GraduationCap, Shield, BookOpen, Menu, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard.jsx';
 import SingleCall from './pages/SingleCall.jsx';
@@ -55,54 +55,64 @@ function ConfirmationModal({ isOpen, onClose, onConfirm, title, message }) {
   );
 }
 
-function Sidebar({ onLogoutRequest }) {
+function Sidebar({ onLogoutRequest, isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }) {
   const location = useLocation();
   const { user, role } = useAuth();
   const [showMenu, setShowMenu] = React.useState(false);
   const visibleNav = NAV_ITEMS.filter(item => !item.roles || item.roles.includes(role));
   
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <img src="/logo2.png" alt="Provaani" className="brand-icon" />
-        <div className="brand-text-container">
-          <h2 className="brand-title">Provaani</h2>
-          <span className="brand-sub">Voice AI Call Manager</span>
+    <>
+      <div className={`sidebar-overlay ${isMobileOpen ? 'active' : ''}`} onClick={() => setIsMobileOpen(false)} />
+      <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
+        <button className="collapse-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
+        <div className="sidebar-brand">
+          <img src="/logo2.png" alt="Provaani" className="brand-icon" />
+          <div className="brand-text-container">
+            <h2 className="brand-title">Provaani</h2>
+            <span className="brand-sub">Voice AI Call Manager</span>
+          </div>
         </div>
-      </div>
-      <nav className="sidebar-nav">
-        {visibleNav.map(({ path, icon: Icon, label, end }) => (
-          <NavLink
-            key={path}
-            to={path}
-            end={end || path === '/'}
-            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+        <nav className="sidebar-nav">
+          {visibleNav.map(({ path, icon: Icon, label, end }) => (
+            <NavLink
+              key={path}
+              to={path}
+              end={end || path === '/'}
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              onClick={() => setIsMobileOpen(false)}
+            >
+              <Icon size={18} />
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+        <div className="sidebar-footer">
+          <div 
+              className="user-profile interactive logout-trigger" 
+              onClick={onLogoutRequest}
+              title="Sign Out"
           >
-            <Icon size={18} />
-            <span>{label}</span>
-          </NavLink>
-        ))}
-      </nav>
-      <div className="sidebar-footer">
-        <div 
-            className="user-profile interactive logout-trigger" 
-            onClick={onLogoutRequest}
-            title="Sign Out"
-        >
-            <div className="logout-content">
-                <LogOut size={18} />
-                <span>Logout</span>
-            </div>
+              <div className="logout-content">
+                  <LogOut size={18} />
+                  <span>Logout</span>
+              </div>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 
-function MobileHeader() {
+function MobileHeader({ onMenuToggle }) {
   return (
     <header className="mobile-header">
       <div className="mobile-brand">
+        <button className="mobile-menu-btn" onClick={onMenuToggle}>
+          <Menu size={24} />
+        </button>
         <img src="/logo2.png" alt="Provaani" className="mobile-logo" />
         <div className="mobile-brand-text">
           <h2 className="mobile-title">Provaani</h2>
@@ -116,6 +126,8 @@ function MobileHeader() {
 function AppContent() {
   const { session, loading, signOut, role } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [isMobileOpen, setIsMobileOpen] = React.useState(false);
 
   if (loading) {
     return (
@@ -131,10 +143,16 @@ function AppContent() {
   }
 
   return (
-    <div className="app-layout">
-      <MobileHeader />
-      <Sidebar onLogoutRequest={() => setShowLogoutConfirm(true)} />
-      <main className="main-content">
+    <div className={`app-layout ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <MobileHeader onMenuToggle={() => setIsMobileOpen(true)} />
+      <Sidebar 
+        onLogoutRequest={() => setShowLogoutConfirm(true)} 
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        isMobileOpen={isMobileOpen}
+        setIsMobileOpen={setIsMobileOpen}
+      />
+      <main className={`main-content ${isCollapsed ? 'expanded' : ''}`}>
         <Routes>
           <Route path="/" element={role === 'super_admin' ? <Dashboard /> : <Navigate to={homeForRole(role)} replace />} />
           <Route path="/superadmin" element={role === 'super_admin' ? <SuperAdminDashboard /> : <Navigate to={homeForRole(role)} replace />} />

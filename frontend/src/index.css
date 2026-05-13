@@ -21,6 +21,9 @@
   --warning-bg: rgba(245, 158, 11, 0.1);
   --info: #3b82f6;
   --info-bg: rgba(59, 130, 246, 0.1);
+  --bg-glass: rgba(10, 14, 20, 0.85);
+  --gradient-primary: linear-gradient(135deg, #c7d2fe 0%, #818cf8 50%, #a78bfa 100%);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
   --sidebar-width: 260px;
   --radius: 10px;
   --radius-sm: 6px;
@@ -72,6 +75,75 @@ h1, h2, h3, .brand-title {
   left: 0;
   bottom: 0;
   z-index: 100;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible;
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* ── Collapse toggle button ── */
+.collapse-btn {
+  position: absolute;
+  top: 50%;
+  right: -14px;
+  transform: translateY(-50%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-dim);
+  z-index: 200;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.collapse-btn:hover {
+  color: var(--text);
+  background: #1a1e26;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.25);
+}
+
+/* Hide labels & brand text when collapsed */
+.sidebar.collapsed .nav-item > span,
+.sidebar.collapsed .brand-text-container,
+.sidebar.collapsed .logout-content > span {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-brand {
+  align-items: center;
+  padding: 0;
+  justify-content: center;
+}
+
+.sidebar.collapsed .brand-icon {
+  width: 36px;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 0.7rem 0;
+}
+
+.sidebar.collapsed .logout-content {
+  justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 0.75rem 0.5rem;
+}
+
+.sidebar.collapsed .sidebar-nav {
+  padding: 0 0.5rem;
 }
 
 .sidebar-brand {
@@ -298,6 +370,11 @@ h1, h2, h3, .brand-title {
   padding: 2rem 2.5rem;
   min-height: 100vh;
   background: var(--bg);
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content.expanded {
+  margin-left: var(--sidebar-collapsed-width);
 }
 
 /* =================== PAGE =================== */
@@ -1243,6 +1320,30 @@ select {
     border-right: none;
     border-top: 1px solid var(--border);
     z-index: 100;
+    /* On mobile sidebar is a bottom tab bar — never collapse */
+    transition: none !important;
+    overflow: visible;
+  }
+
+  /* Hide collapse button on mobile — not needed for bottom bar */
+  .collapse-btn {
+    display: none !important;
+  }
+
+  /* Override collapsed sidebar styles on mobile */
+  .sidebar.collapsed {
+    width: 100% !important;
+    overflow: visible;
+  }
+  .sidebar.collapsed .nav-item > span,
+  .sidebar.collapsed .brand-text-container,
+  .sidebar.collapsed .logout-content > span {
+    display: flex;
+  }
+
+  /* Expanded main content should not shift on mobile */
+  .main-content.expanded {
+    margin-left: 0 !important;
   }
 
   .sidebar-brand, .sidebar-footer {
@@ -3365,3 +3466,300 @@ button.highlight:hover, .btn.highlight:hover {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ====================================================
+   COMPREHENSIVE MOBILE RESPONSIVENESS
+   max-width 768px (mobile) and 1024px (tablet)
+   ==================================================== */
+
+/* Tables always horizontally scrollable */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+table {
+  min-width: 480px;
+}
+
+/* ---- MOBILE (max 768px) ---- */
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 1.25rem;
+  }
+  .page-header h1 {
+    font-size: 1.35rem;
+  }
+  .page-header p {
+    font-size: 0.82rem;
+  }
+  .page-header.flex-between {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+  .card {
+    padding: 1rem !important;
+  }
+
+  /* All grids collapse */
+  .stats-grid,
+  .detail-grid,
+  .two-col-grid,
+  .grid-2,
+  .form-grid,
+  .sa-charts-row,
+  .sa-two-col,
+  .sa-insights-grid,
+  .hod-charts-row,
+  .hod-expanded-stats,
+  .cdash-two-col-layout,
+  .acm-row {
+    grid-template-columns: 1fr !important;
+  }
+  .sa-metrics-column,
+  .sa-charts-column {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    flex-shrink: unset !important;
+  }
+
+  /* SA Welcome Banner */
+  .sa-welcome-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+  .sa-banner-right {
+    margin-left: 0 !important;
+    align-items: flex-start !important;
+    width: 100%;
+  }
+  .sa-banner-actions-row,
+  .sa-banner-badges-row {
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+
+  /* SA Main Content layout */
+  .sa-main-content-full {
+    flex-direction: column !important;
+  }
+  .sa-col-main,
+  .sa-col-side {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* SA Drill header */
+  .sa-drill-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem;
+  }
+  .cdash-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* SA Counsellor Strip */
+  .sa-counsellor-strip {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  /* HOD */
+  .hod-expanded-header {
+    flex-wrap: wrap !important;
+    gap: 0.5rem;
+  }
+
+  /* Filter bars and table controls */
+  .cdash-filters-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+  .cdash-preset-btns {
+    flex-wrap: wrap !important;
+  }
+  .cdash-date-inputs {
+    flex-wrap: wrap !important;
+  }
+  .cdash-table-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+  .cdash-filter-select-wrap,
+  .cdash-search-wrap {
+    width: 100%;
+  }
+  .cdash-filter-select {
+    width: 100%;
+  }
+
+  /* Campaign */
+  .campaign-launch-bar {
+    padding: 0.75rem 1rem !important;
+  }
+  .btn-launch {
+    font-size: 0.82rem !important;
+    padding: 0.6rem 1rem !important;
+  }
+
+  /* Stat cards */
+  .stat-card {
+    padding: 0.9rem;
+  }
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  /* Grids */
+  .sa-course-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+  }
+  .hod-counsellor-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .cdash-pending-cards {
+    grid-template-columns: 1fr !important;
+  }
+  .cdash-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .sa-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Modals */
+  .modal-content {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 1.25rem !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Buttons */
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    font-size: 0.82rem;
+    padding: 0.55rem 0.9rem;
+  }
+
+  /* Typography */
+  .section-title {
+    font-size: 0.9rem !important;
+  }
+
+  /* Inspector tabs */
+  .inspector-tabs {
+    max-width: 100% !important;
+    overflow-x: auto;
+  }
+
+  /* Flex wrap */
+  .flex-center {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---- TABLET (769px - 1024px) ---- */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .sa-charts-row,
+  .hod-charts-row {
+    grid-template-columns: 1fr !important;
+  }
+  .sa-two-col {
+    grid-template-columns: 1fr !important;
+  }
+  .sa-main-content-full {
+    flex-direction: column !important;
+  }
+  .sa-col-main,
+  .sa-col-side {
+    width: 100% !important;
+  }
+  .main-content {
+    padding: 1.5rem 1.5rem;
+  }
+  .sa-metrics-column {
+    width: 100% !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+
+/* ---- Extra Mobile fixes for Counsellor & HOD Dashboards ---- */
+@media (max-width: 768px) {
+  /* Counsellor: sidebar stats panel goes horizontal strip below table */
+  .cdash-two-col-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .cdash-side-panel {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem;
+  }
+  .cdash-side-panel > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  /* Table header stacks on mobile */
+  .cdash-table-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+  .cdash-search-wrap {
+    width: 100% !important;
+  }
+
+  /* SA banner stat tiles */
+  .sa-banner-stats-row {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Prevent horizontal overflow */
+  .fade-in {
+    overflow-x: hidden;
+  }
+
+  /* sa-drill header search full width */
+  .sa-drill-header .cdash-search-wrap {
+    width: 100%;
+  }
+  .sa-drill-header .cdash-search-input {
+    width: 100% !important;
+  }
+
+  /* HOD section header */
+  .sa-section-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem;
+  }
+
+  /* Counsellor detail row info wraps */
+  .cdash-detail-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem;
+  }
+
+  /* Campaign detail page header badges wrap */
+  .page-header .flex-center.gap-1 {
+    flex-wrap: wrap;
+  }
+
+  /* Course streams grid */
+  .grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+

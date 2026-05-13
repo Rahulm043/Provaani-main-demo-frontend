@@ -8,6 +8,7 @@ import {
     MessageSquare, Radio, AlertCircle,
 } from 'lucide-react';
 import { authFetch, swrFetcher } from '../utils/api.js';
+import BackButton from '../components/BackButton.jsx';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:7860';
 
@@ -166,6 +167,7 @@ export default function SingleCall() {
 
     return (
         <div className="fade-in">
+            <BackButton />
             <div className="page-header">
                 <h1>Single Call</h1>
                 <p>Make an individual SIP call or test with a web call</p>
