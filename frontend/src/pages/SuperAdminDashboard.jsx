@@ -442,7 +442,15 @@ export default function SuperAdminDashboard() {
 
                 <div className="sa-col-main">
                     {/* ── Breadcrumb ── */}
-                    <div className="sa-breadcrumb">
+                    <div className="sa-breadcrumb" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {(selectedCategory || selectedCounsellor) && (
+                            <button className="btn-secondary" style={{ marginRight: '1rem', padding: '0.4rem 0.8rem', height: 'auto', fontSize: '0.8rem' }} onClick={() => {
+                                if (selectedCounsellor) setSelectedCounsellor(null);
+                                else if (selectedCategory) setSelectedCategory(null);
+                            }}>
+                                <ChevronLeft size={14} /> Back
+                            </button>
+                        )}
                         <button className={`sa-bc-item ${!selectedCategory ? 'sa-bc-active' : ''}`}
                             onClick={() => { setSelectedCategory(null); setSelectedCounsellor(null); }}>
                             All Departments

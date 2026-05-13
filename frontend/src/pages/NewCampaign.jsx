@@ -6,6 +6,7 @@ import {
     Users, Settings2, ArrowRight, Zap,
 } from 'lucide-react';
 import { authFetch, swrFetcher } from '../utils/api.js';
+import BackButton from '../components/BackButton.jsx';
 
 export default function NewCampaign() {
     const navigate = useNavigate();
@@ -112,6 +113,7 @@ export default function NewCampaign() {
 
     return (
         <div className="fade-in campaign-page-container">
+            <BackButton />
             <div className="page-header">
                 <h1>New Campaign</h1>
                 <p>Create a bulk outbound calling campaign</p>

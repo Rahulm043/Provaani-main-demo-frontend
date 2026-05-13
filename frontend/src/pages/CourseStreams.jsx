@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { BookOpen, Plus, RefreshCw, Users, GraduationCap } from 'lucide-react';
 import { authFetch, swrFetcher } from '../utils/api.js';
+import BackButton from '../components/BackButton.jsx';
 
 export default function CourseStreams() {
     const { data, mutate, isLoading } = useSWR('/api/crm/dashboard?scope=superadmin', swrFetcher, { refreshInterval: 10000 });
@@ -52,6 +53,7 @@ export default function CourseStreams() {
 
     return (
         <div className="fade-in">
+            <BackButton />
             <div className="page-header">
                 <div>
                     <h1>Courses / Streams</h1>

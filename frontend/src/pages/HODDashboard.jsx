@@ -9,6 +9,7 @@ import {
 import { swrFetcher } from '../utils/api.js';
 import { todayStr, nDaysAgo } from '../utils/date.js';
 import { useAuth } from '../components/AuthProvider.jsx';
+import BackButton from '../components/BackButton.jsx';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function fmtDate(iso) {
@@ -331,9 +332,7 @@ export default function HODDashboard() {
                 <div className="sa-section-header" style={{ marginBottom: '0.85rem' }}>
                     <h3 className="section-title">My Counsellors</h3>
                     {selectedCounsellor && (
-                        <button className="btn-ghost" style={{ fontSize: '0.8rem' }} onClick={() => setSelectedCounsellor(null)}>
-                            × Clear filter
-                        </button>
+                        <BackButton label="Back to All Counsellors" onClick={() => setSelectedCounsellor(null)} style={{ marginBottom: 0 }} />
                     )}
                 </div>
                 <div className="hod-counsellor-grid">

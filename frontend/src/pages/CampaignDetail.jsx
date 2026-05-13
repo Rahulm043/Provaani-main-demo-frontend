@@ -6,6 +6,7 @@ import {
     ArrowUpRight, RefreshCw, XCircle,
 } from 'lucide-react';
 import CallInspector from '../components/CallInspector.jsx';
+import BackButton from '../components/BackButton.jsx';
 import { authFetch, swrFetcher } from '../utils/api.js';
 
 function formatDate(iso) {
@@ -62,9 +63,7 @@ export default function CampaignDetail() {
         <div className="fade-in">
             <div className="page-header flex-between">
                 <div>
-                    <button className="btn-ghost mb-1" onClick={() => navigate('/campaigns')}>
-                        <ArrowLeft size={16} /> Back to Campaigns
-                    </button>
+                    <BackButton label="Back to Campaigns" to="/campaigns" style={{ marginBottom: '1rem', display: 'inline-flex' }} />
                     <h1>{campaign.name}</h1>
                     <p className="flex-center gap-1">
                         <span className={`badge ${campaign.status}`}>{campaign.status}</span>
